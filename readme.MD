@@ -8,6 +8,8 @@ Docker: Centos 7.
 Note that every machine runs on VirtualBox in those scripts, to reduce the cost to test the deployment on multiple servers.
 You only need to adapt the hosts/ directory and the VM setup described here to be able to run the script on any machine.
 
+The goal in the current scripts is to try to only use Docker images for each role.
+
 ### Ansible installation on your "Deployment" machine
 1. Install ansible
 ``` 
@@ -104,31 +106,22 @@ login. Afterwards the "deployer" users will all have the same public/private key
 
 ```ansible-playbook -i hosts/deployer -b roles/deployer.yml```
 
-5. Run the first basic installation with ansible (common for all hosts), after adding the hosts to the corresponding inventory file
-
-``` ansible-playbook -i hosts/cluster -s roles/common.yml ```
-
-If you want to run a short update (only if the first installation was already done on the every node): 
-
-```ansible-playbook -i hosts/cluster -s roles/common.yml --skip-tags slow ```
-
-
 ### List of available roles
 
 ##### Before any role
-ansible-playbook -i hosts/dedistore -s roles/common.yml
+ansible-playbook -i hosts/deployer -s roles/deployer.yml
 
-##### Install docker
-ansible-playbook -i hosts/dedistore -s roles/docker.yml
-
-##### Install kafka
-ansible-playbook -i hosts/cluster -s roles/kafka.yml
+##### Before any role, as network can change for every cluster
+ansible-playbook -i hosts/cluster -s roles/network.yml
 
 ##### Install repository (kaio server)
 ansible-playbook -i hosts/repository -s roles/repository.yml
 
 ##### Install jenkins (kaio server)
 ansible-playbook -i hosts/jenkins -s roles/jenkins.yml
+
+##### Install kafka
+ansible-playbook -i hosts/cluster -s roles/kafka.yml
 
 ### Other
 1. Ping all machines:

@@ -7,8 +7,6 @@ kafka_number_of_partitions= 3
 
 [network]
 192.168.56.101 hostname=node1
-192.168.56.102 hostname=node2
-192.168.56.103 hostname=node3
 
 [kafka]
 node1 broker_id=0

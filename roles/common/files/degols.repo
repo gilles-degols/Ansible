@@ -2,5 +2,5 @@
 name=Personal packages for Centos 7 - $basearch
 baseurl=http://kaio/degols/7/$basearch/
 #failovermethod=priority
-enabled=1
+enabled=0
 gpgcheck=0

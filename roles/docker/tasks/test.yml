@@ -1,2 +1,0 @@
-- name: Test Docker installation
-  shell: docker run hello-world

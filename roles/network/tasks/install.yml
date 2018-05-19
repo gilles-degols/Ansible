@@ -2,6 +2,7 @@
   template:
     src: hosts
     dest: /etc/hosts
+  when: hostname == "deployment"
 
 - name: Set pretty hostname
   shell: hostnamectl set-hostname {{hostname}}
