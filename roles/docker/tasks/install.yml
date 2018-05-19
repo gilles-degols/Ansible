@@ -1,0 +1,30 @@
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Allow to use https for Docker directory
+  apt:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+
+- name: Add Docker GPG key
+  shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+- name: Add Docker repository (stable)
+  shell: add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+- name: Install docker-ce
+  apt:
+    name: "{{item.package}}={{item.version}}"
+    state: present
+    update_cache: yes
+  with_items:
+    - { package: "docker-ce", version: "17.03.1~ce-0~ubuntu-xenial" }
+    - { package: "docker-compose", version: "1.8.0-2~16.04.1" }
+
+- include: test.yml

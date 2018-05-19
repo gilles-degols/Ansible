@@ -1,0 +1,7 @@
+- name: Upload hosts file
+  template:
+    src: hosts
+    dest: /etc/hosts
+
+- name: Set pretty hostname
+  shell: hostnamectl set-hostname {{hostname}}

@@ -1,0 +1,64 @@
+- name: Create zookeeper group
+  group:
+    name: zookeeper
+    state: present
+
+- name: Create zookeeper user
+  user:
+    name: zookeeper
+    groups: zookeeper
+    append: yes
+    state: present
+    createhome: no
+
+- name: Create directories for zookeeper
+  file:
+    path: "{{item}}"
+    state: directory
+    owner: zookeeper
+    group: zookeeper
+    mode: 0777
+  with_items:
+    - /usr/lib/zookeeper
+    - /etc/local/zookeeper
+    - /var/lib/zookeeper
+
+- name: Install zookeeper
+  shell: "{{item}}"
+  with_items:
+    - "wget http://apache.belnet.be/zookeeper/zookeeper-3.5.3-beta/zookeeper-3.5.3-beta.tar.gz"
+    - "tar -xvf zookeeper-3.5.3-beta.tar.gz"
+    - "mv zookeeper-3.5.3-beta/* /usr/lib/zookeeper/"
+    - "rm -rf zookeeper-3.5.3-beta"
+  tags:
+    - slow
+
+- name: Transfer systemd service file
+  template:
+    src: zookeeper.service
+    dest: /usr/lib/systemd/system/zookeeper.service
+    owner: root
+    group: root
+
+- name: Transfer kafka configuration file
+  template:
+    src: zookeeper.cfg
+    dest: /etc/local/zookeeper/zookeeper.cfg
+    owner: root
+    group: root
+
+- name: Add symbolic link to zkCli
+  file:
+    src: /usr/lib/zookeeper/bin/zkCli.sh
+    dest: /usr/bin/zkCli
+    owner: zookeeper
+    group: zookeeper
+    state: link
+
+- name: Enable zookeeper
+  systemd:
+    daemon_reload: yes
+    enabled: yes
+    name: zookeeper
+
+

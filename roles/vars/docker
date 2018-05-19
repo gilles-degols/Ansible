@@ -1,0 +1,4 @@
+operation: install
+
+# Configuration
+docker_version: 1

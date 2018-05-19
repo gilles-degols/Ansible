@@ -1,0 +1,95 @@
+
+# Project name/url: kaio
+# IMPORTANT: this server should not be accessible on the internet!
+# https://deviantengineer.com/2016/03/repo-centos7/
+# Publish to repository: https://stackoverflow.com/questions/42261557/how-to-publish-a-rpm-package-to-yum
+- name: Updates and requisites
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - createrepo
+    - epel-release
+    - firewalld
+    - rsync
+
+- name: Install nginx
+  yum:
+    name: nginx
+    state: present
+
+- name: Disable selinux and initialize repos
+  shell: "{{item}}"
+  with_items:
+    - "sed -i /etc/selinux/config -r -e 's/^SELINUX=.*/SELINUX=disabled/g'"
+    - "mkdir -p /var/www/html/kaio/centos/7/{os/x86_64,updates/x86_64}"   # Base and Update Repos
+    - "mkdir -p /var/www/html/kaio/epel/7/x86_64"   # EPEL Repo
+    - "mkdir -p /var/www/html/kaio/degols/7/x86_64"   # Personal repository
+    - "createrepo /var/www/html/kaio/centos/7/os/x86_64/"   # Initialize CentOS Base Repo
+    - "createrepo /var/www/html/kaio/centos/7/updates/x86_64/"   # Initialize CentOS Update Repo
+    - "createrepo /var/www/html/kaio/epel/7/x86_64/"   # Initialize EPEL 7 Repo
+    - "createrepo /var/www/html/kaio/degols/7/x86_64/"   # Initialize Degols Repo
+
+- name: Send nginx general configuration file
+  file:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+    owner: nginx
+    group: nginx
+
+- name: Send nginx kaio configuration file
+  copy:
+    src: kaio.conf
+    dest: /etc/nginx/conf.d/kaio.conf
+    owner: nginx
+    group: nginx
+
+- name: Initial repository download (takes hours)
+  # It's probably better to launch the command ourselves in parallel than waiting for ansible to run
+  # each command after another...
+  # Epel-repository is ~15GB without the debug packages, so for now we don't download them...
+  shell: "{{item}}"
+  with_items:
+    - "rsync -avz --exclude='repo*' rsync://mirror.cisp.com/CentOS/7/os/x86_64/ /var/www/html/kaio/centos/7/os/x86_64/"   # CentOS Base Repo
+    - "rsync -avz --exclude='repo*' rsync://mirror.cisp.com/CentOS/7/updates/x86_64/ /var/www/html/kaio/centos/7/updates/x86_64/"   # CentOS Update Repo
+    # - "rsync -avz --exclude='repo*' --exclude='debug' rsync://mirrors.rit.edu/epel/7/x86_64/ /var/www/html/kaio/epel/7/x86_64/"   # EPEL 7 Repo
+  tags:
+    - slow
+
+- name: Update repository (takes hours)
+  # TODO: Probably redundant with kaio-update.timer
+  shell: "{{item}}"
+  with_items:
+    - "createrepo --update /var/www/html/repos/centos/7/os/x86_64/"   # CentOS Base Repo
+    - "createrepo --update /var/www/html/repos/centos/7/updates/x86_64/"   # CentOS Update Repo
+    # - "createrepo --update /var/www/html/repos/epel/7/x86_64/"   # EPEL 7 Repo
+  tags:
+    - slow
+
+- name: Clean repository
+  # Avoid 403 forbidden, not sure why it happen, but whatever
+  shell: restorecon -r /var/www
+
+- name: Send systemd files to update the repositories
+  copy:
+    src: "{{item.src}}"
+    dest: "{{item.dest}}"
+    owner: nginx
+    group: nginx
+  with_items:
+    - {'src':'kaio-update.sh','dest':'/usr/bin/kaio-update'}
+    - {'src':'kaio-update.timer','dest':'/usr/lib/systemd/system/kaio-update.timer'}
+
+- name: Update firewall rules to allow nginx to be accessible from outside
+  shell: "{{item}}"
+  with_items:
+    - "systemctl enable nginx.service && systemctl enable firewalld.service"
+    - "systemctl start firewalld.service"
+    - "firewall-cmd --permanent --add-service=http"
+    - "firewall-cmd --reload"
+
+- name: Enable kaio-update
+  systemd:
+    daemon_reload: yes
+    enabled: yes
+    name: kaio-update.timer

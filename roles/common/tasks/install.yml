@@ -1,0 +1,48 @@
+
+- name: Install gd-tools
+  copy:
+    src: gd-tools.py
+    dest: /usr/bin/gd-tools
+    owner: root
+    group: root
+    mode: 0777
+
+- name: Install local repository
+  copy:
+    src: "{{item.src}}"
+    dest: "{{item.dest}}"
+    owner: root
+    group: root
+    mode: 0777
+  with_items:
+    - {'src': 'CentOS-Base.repo', 'dest': '/etc/yum.repos.d/CentOS-Base.repo'}
+    - {'src': 'epel.repo', 'dest': '/etc/yum.repos.d/epel.repo'}
+    - {'src': 'degols.repo', 'dest': '/etc/yum.repos.d/degols.repo'}
+
+- namse: Update repository list
+  shell: 'yum clean all && yum check-update || test $? -eq 100'
+
+- name: Install java-sun jdk 8u144
+  shell: "{{item}}"
+  with_items:
+    - "wget --no-cookies --no-check-certificate --header \"Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie\" http://download.oracle.com/otn-pub/java/jdk/8u144-b01/090f390dda5b47b9b721c7dfaa008135/jdk-8u144-linux-x64.rpm"
+    - "yum localinstall -y jdk-8u144-linux-x64.rpm"
+    - "rm jdk-8u144-linux-x64.rpm"
+  tags:
+    - slow
+
+- name: Create directory for configuration
+  file:
+    path: "{{item}}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - /etc/local
+
+- name: Remove rsyslog
+  # We use journalctl directly so it's redundant
+  yum:
+    name: rsyslog
+    state: absent

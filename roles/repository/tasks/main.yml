@@ -1,0 +1,6 @@
+
+- include: install.yml
+  when: operation == "install"
+
+- include: remove.yml
+  when: operation == "remove"

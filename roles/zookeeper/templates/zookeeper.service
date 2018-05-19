@@ -1,0 +1,16 @@
+[Unit]
+Description=Zookeeper Server
+
+[Service]
+WorkingDirectory=/usr/lib/zookeeper
+User=zookeeper
+Group=zookeeper
+EnvironmentFile=/etc/local/zookeeper/zookeeper.env
+ExecStartPre=/bin/bash -c 'echo {{zk_id}} > /var/lib/zookeeper/myid'
+ExecStart=/usr/lib/zookeeper/bin/zkServer.sh --config /etc/local/zookeeper/zookeeper.cfg start
+ExecStop=/usr/lib/zookeeper/bin/zkServer.sh --config /etc/local/zookeeper/zookeeper.cfg stop
+Type=notify
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

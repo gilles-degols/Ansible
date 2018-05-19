@@ -1,0 +1,10 @@
+[all:vars]
+ansible_user = root
+ansible_ssh_private_key_file = /root/.ssh/cluster
+ansible_ssh_public_key_file = /root/.ssh/cluster.pub
+
+[all]
+192.168.56.101
+192.168.56.102
+192.168.56.103
+192.168.56.151

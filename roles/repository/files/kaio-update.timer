@@ -1,0 +1,17 @@
+[Unit]
+Description=Update kaio daily and on boot
+Requires=nginx.service
+After=nginx.service
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=1d
+User=root
+Group=root
+ExecStart=/usr/bin/kaio-update.sh
+RandomizedDelaySec=3600
+Persistent=true
+Type=oneshot
+
+[Install]
+WantedBy=timers.target

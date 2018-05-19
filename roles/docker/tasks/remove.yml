@@ -1,0 +1,7 @@
+- name: Remove docker-ce
+  apt:
+    name: "{{item}}"
+    state: absent
+  with_items:
+    - docker-ce
+    - docker-compose

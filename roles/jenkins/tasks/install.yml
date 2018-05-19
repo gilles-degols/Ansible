@@ -1,0 +1,10 @@
+
+- name: Install jenkins
+  shell: "{{item}}"
+  with_items:
+    - "wget https://pkg.jenkins.io/redhat-stable/jenkins-2.60.2-1.1.noarch.rpm"
+    - "yum localinstall -y jenkins-2.60.2-1.1.noarch.rpm"
+    - "mv zookeeper-3.5.3-beta/* /usr/lib/zookeeper/"
+    - "rm -rf zookeeper-3.5.3-beta"
+  tags:
+    - slow

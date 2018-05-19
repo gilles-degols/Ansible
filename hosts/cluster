@@ -1,0 +1,23 @@
+[all:vars]
+ansible_user = deployer
+ansible_ssh_private_key_file = /root/.ssh/cluster
+
+# Default number of partitions for the kafka topics
+kafka_number_of_partitions= 3
+
+[network]
+192.168.56.101 hostname=node1
+192.168.56.102 hostname=node2
+192.168.56.103 hostname=node3
+
+[kafka]
+node1 broker_id=0
+node2 broker_id=1
+node3 broker_id=2
+
+[zookeeper]
+node1 zk_id=0
+node2 zk_id=1
+node3 zk_id=2
+
+
