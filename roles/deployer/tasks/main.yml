@@ -1,2 +1,12 @@
-
 - include: add-deployer-user.yml
+  when: hostname != "deployment"
+
+- name: Upload hosts file for the deployment machine only
+  template:
+    src: hosts
+    dest: /etc/hosts
+  when: hostname == "deployment"
+
+- name: Set pretty hostname for the deployment machine only
+  shell: hostnamectl set-hostname {{hostname}}
+  when: hostname == "deployment"
