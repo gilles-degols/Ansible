@@ -1,0 +1,55 @@
+- name: Create kafka group
+  group:
+    name: kafka
+    state: present
+
+- name: Create kafka user
+  user:
+    name: kafka
+    groups: kafka
+    append: yes
+    state: present
+    createhome: no
+
+- name: Create directories for kafka
+  file:
+    path: "{{item}}"
+    state: directory
+    owner: kafka
+    group: kafka
+    mode: 0777
+  with_items:
+    - /usr/lib/kafka
+    - /etc/local/kafka
+    - /var/lib/kafka
+
+- name: Install kafka
+  # Note: if needed, we could create an rpm easily with a few commands: https://github.com/id/kafka-el7-rpm
+  shell: "{{item}}"
+  with_items:
+    - "wget http://apache.belnet.be/kafka/1.1.0/kafka_2.11-1.1.0.tgz"
+    - "tar -xvf kafka_2.11-1.1.0.tgz"
+    - "mv kafka_2.11-1.1.0/* /usr/lib/kafka/"
+    - "rm -rf kafka_2.11-1.1.0"
+  tags:
+    - slow
+
+- name: Transfer systemd service file
+  copy:
+    src: kafka.service
+    dest: /usr/lib/systemd/system/kafka.service
+    owner: root
+    group: root
+
+- name: Transfer kafka configuration file
+  template:
+    src: server.properties
+    dest: /etc/local/kafka/server.properties
+    owner: root
+    group: root
+
+- name: Enable kafka
+  systemd:
+    daemon_reload: yes
+    enabled: yes
+    name: kafka

@@ -1,0 +1,7 @@
+- hosts: kafka
+  become: yes
+  vars_files:
+    - vars/kafka
+  roles:
+    - kafka
+  max_fail_percentage: 0
